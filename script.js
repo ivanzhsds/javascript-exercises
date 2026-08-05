@@ -826,28 +826,54 @@ function renderUsersCrud() {
 }
 
 function renderFetchApi() {
-  const field = document.createElement('div');
-  field.className = 'field-group';
-  field.appendChild(createLabel('ID do post (1 a 100)', 'postId'));
-  field.appendChild(createInput('number', 'postId', 'Ex: 5'));
-  const button = createButton('Buscar post');
+  const info = document.createElement('div');
+  info.className = 'field-group';
+  info.appendChild(createLabel('Consulte uma API pública aleatória', null));
+  info.appendChild(document.createElement('p'));
+  info.querySelector('p').textContent = 'Clique no botão para buscar dados de uma API aleatória usando fetch e async/await.';
+
+  const button = createButton('Buscar API Aleatória');
   button.addEventListener('click', async () => {
-    const id = Number(document.getElementById('postId').value);
-    if (!Number.isInteger(id) || id < 1 || id > 100) {
-      showAlert('Informe um ID válido entre 1 e 100.');
-      return;
-    }
-    setResult('Buscando dados...');
+    setResult('Buscando API aleatória...');
     try {
-      const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`);
-      if (!response.ok) throw new Error('Erro ao acessar a API.');
+      const response = await fetch('https://www.freepublicapis.com/api/random');
+      if (!response.ok) {
+        throw new Error('Resposta da API não foi bem-sucedida.');
+      }
       const data = await response.json();
-      setResultHTML(`<strong>ID:</strong> ${data.id}<br><strong>Título:</strong> ${data.title}<br><strong>Conteúdo:</strong> ${data.body}`);
+      if (!data || typeof data !== 'object') {
+        throw new Error('Formato de dados inválido.');
+      }
+
+      const name = data.title || data.name || 'Não informado';
+      const description = data.description || 'Não informado';
+      const category = data.category || 'Não informado';
+      const methods = data.methods !== undefined ? String(data.methods) : 'Não informado';
+      const documentation = data.documentation || data.source || '';
+      const emoji = data.emoji || 'Não informado';
+      const health = data.health !== undefined ? String(data.health) : 'Não informado';
+
+      const documentationLink = documentation ? documentation : '#';
+      const documentationText = documentation ? documentation : 'Não disponível';
+
+      setResultHTML(`
+        <div class="result-box">
+          <div class="detail"><strong>Nome da API</strong><p>${name}</p></div>
+          <div class="detail"><strong>Descrição</strong><p>${description}</p></div>
+          <div class="detail"><strong>Categoria</strong><p>${category}</p></div>
+          <div class="detail"><strong>Métodos HTTP</strong><p>${methods}</p></div>
+          <div class="detail"><strong>Emoji</strong><p>${emoji}</p></div>
+          <div class="detail"><strong>Health</strong><p>${health}</p></div>
+          <div class="detail"><strong>Documentação</strong><p>${documentation ? `<a href="${documentationLink}" target="_blank" rel="noopener noreferrer">Abrir documentação</a>` : documentationText}</p></div>
+        </div>
+      `);
     } catch (error) {
-      showAlert('Não foi possível buscar o post. Tente novamente.');
+      showAlert('Não foi possível carregar a API. Verifique sua conexão e tente novamente.');
+      console.error(error);
     }
   });
-  exerciseControls.append(field, button);
+
+  exerciseControls.append(info, button);
 }
 
 function getTodoStorage() {
